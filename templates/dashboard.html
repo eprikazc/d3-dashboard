@@ -108,13 +108,12 @@
         }
 
         function graphic(selector, url, options){
-            console.log($(selector + " svg g").length);
-            $(selector + " svg g").remove();
+            $(selector + " svg>g").remove();
             if (options == undefined) {
                 options = {};
             }
             if (options.margin == undefined) {
-                options.margin = [40, 80, 40, 80];
+                options.margin = [60, 80, 40, 80];
             }
             if (options.width == undefined) {
                 options.width = 600;
@@ -202,6 +201,11 @@
                             legend_y += legend_step_y;
 
                         }
+                        svg.append("svg:text")
+                                .attr("x", w/2)
+                                .attr("y", -40)
+                                .attr("text-anchor", "middle")
+                                .text(options.title);
 
                         // Add a small label for the symbol name.
                         svg.append("svg:text")
@@ -226,18 +230,18 @@
 <script type="text/javascript">
     var updateData = function(){
         tabulate(
-                "#system_parameters",
-                "/data_update?data=system_parameters",
-                ["System parameters", "Time stamp", "Value"]
+            "#system_parameters",
+            "/data_update?data=system_parameters",
+            ["System parameters", "Time stamp", "Value"]
         );
         tabulate(
-                "#adequacy",
-                "/data_update?data=adequacy"
+            "#adequacy",
+            "/data_update?data=adequacy"
         );
 
-        graphic("div#price", "/data_update?data=price");
-        graphic("div#load", "/data_update?data=load");
-        graphic("div#wind", "/data_update?data=wind");
+        graphic("div#price", "/data_update?data=price", {title: "Price graph"});
+        graphic("div#load", "/data_update?data=load", {title: "Load graph"});
+        graphic("div#wind", "/data_update?data=wind", {title: "Wind generation"});
     }
     $(function(){
         updateData();
