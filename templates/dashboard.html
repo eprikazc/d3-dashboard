@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link href="{{ url_for('static', filename='css/d3.css') }}" rel="stylesheet" type="text/css">
+
+    <style>
+        body {
+            font: 10px sans-serif;
+            margin: 0;
+        }
+
+        path.line {
+            fill: none;
+            stroke-width: 1.5px;
+        }
+
+        .axis path {
+            fill: none;
+            stroke: #000;
+            stroke-opacity: .75;
+            shape-rendering: crispEdges;
+        }
+
+        .axis path.domain {
+            stroke-opacity: .75;
+        }
+
+        .axis line {
+            fill: none;
+            stroke: #000;
+            stroke-opacity: .25;
+            shape-rendering: crispEdges;
+        }
+
+        .axis line.zero {
+            stroke-opacity: .75;
+        }
+
+        .p1 {
+            stroke: #1d1eff
+        }
+
+        .p2 {
+            stroke: #09b224
+        }
+
+        .p3 {
+            stroke: #cd0f0d
+        }
+
+        .p4 {
+            stroke: #12f9f0
+        }
+
+        .p5 {
+            stroke: #851dd8
+        }
+
+    </style>
+
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.1/underscore-min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/d3/2.10.0/d3.v2.min.js"></script>
+    <script type="text/javascript">
+        function tabulate(selector, csv_url, printable_columns) {
+            $.get(
+                csv_url,
+                function(data){
+                    var data = (d3.csv.parseRows(data));
+                    parsed_headers = data.shift();
+                    if (printable_columns == undefined) {
+                        printable_columns = parsed_headers;
+                    }
+                    var table = d3.select(selector).append("table"),
+                            thead = table.append("thead"),
+                            tbody = table.append("tbody");
+
+                    // append the header row
+                    thead.append("tr")
+                            .selectAll("th")
+                            .data(printable_columns)
+                            .enter()
+                            .append("th")
+                            .text(function(column) { return column; });
+
+                    // create a row for each object in the data
+                    var rows = tbody.selectAll("tr")
+                            .data(data)
+                            .enter()
+                            .append("tr");
+
+                    // create a cell in each row for each column
+                    var cells = rows.selectAll("td")
+                            .data(function(row) {
+                                return row;
+                            })
+                            .enter()
+                            .append("td")
+                            .text(function(d) {
+                                return d;
+                            });
+
+                    return table;
+                }
+            );
+        }
+
+    </script>
+</head>
+<body>
+
+<div id="system_parameters"></div>
+<div id="adequacy"></div>
+
+<script type="text/javascript">
+    tabulate(
+        "#system_parameters",
+        "/data_update?data=system_parameters",
+        ["System parameters", "Time stamp", "Value"]
+    );
+    tabulate(
+        "#adequacy",
+        "/data_update?data=adequacy"
+    );
+
+    var m = [80, 80, 80, 80],
+            w = 760 - m[1] - m[3],
+            h = 450 - m[0] - m[2],
+            parse = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
+            format = d3.time.format("%H:%M");
+
+    // Scales and axes. Note the inverted domain for the y-scale: bigger is up!
+    var x = d3.time.scale().range([0, w]),
+            y = d3.scale.linear().range([h, 0]),
+            xAxis = d3.svg.axis().scale(x).tickSize(-h).tickSubdivide(true).tickFormat(format),
+            yAxis = d3.svg.axis().scale(y).ticks(6).orient("left");
+
+    $.get("/data_update?data=price",
+        function(data){
+            var headers = d3.csv.parseRows(data).shift();
+            var values = d3.csv.parse(data);
+
+            values.forEach(function(d) {
+                d.Datetime = parse(d.Datetime.substring(0, d.Datetime.length - 6));
+            });
+
+            x.domain([values[0].Datetime, values[values.length - 1].Datetime]);
+            y.domain([0, d3.max(values, function(d) {
+                return d.DA;
+            })]).nice();
+
+            var svg = d3.select("body").append("svg:svg")
+                    .attr("width", w + m[1] + m[3])
+                    .attr("height", h + m[0] + m[2])
+                    .append("svg:g")
+                    .attr("transform", "translate(" + m[3] + "," + m[0] + ")");
+
+
+            // Add the x-axis.
+            svg.append("svg:g")
+                    .attr("class", "x axis")
+                    .attr("transform", "translate(0," + h + ")")
+                    .call(xAxis);
+
+            // Add the y-axis.
+            svg.append("svg:g")
+                    .attr("class", "y axis")
+                //.attr("transform", "translate(" + w + ",0)")
+                    .call(yAxis);
+
+            // Add the line path.
+            var legend_y = 5,
+                    legend_x = 20,
+                    legend_step_y = 10
+            for (var i = 0; i < headers.length; i++){
+                key_name = headers[i];
+                if (key_name == "Datetime") {
+                    continue;
+                }
+                var line = d3.svg.line()
+                        .interpolate("monotone")
+                        .x(function(d) { return x(d.Datetime); })
+                        .y(function(d) { return y(d[key_name]); });
+
+                svg.append("svg:path")
+                        .classed("p" + i, true)
+                        .classed("line", true)
+                        .attr("d", line(values));
+
+                svg.append("svg:rect")
+                        .attr("x", legend_x)
+                        .attr("y", legend_y)
+                        .attr("height", 2)
+                        .attr("width", 10)
+                        .classed("p" + i, true)
+                svg.append("svg:text")
+                        .attr("x", legend_x + 15)
+                        .attr("y", legend_y + 5)
+                        .attr("text-anchor", "start")
+                        .text(key_name);
+                legend_y += legend_step_y;
+
+            }
+
+            // Add a small label for the symbol name.
+            svg.append("svg:text")
+                    .attr("x", w - 6)
+                    .attr("y", h - 6)
+                    .attr("text-anchor", "end")
+                    .text(values[0].symbol);
+
+        }
+    )
+</script>
+</body>
+</html>
