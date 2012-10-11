@@ -15,6 +15,10 @@ def system_parameters():
         filename_prefix = "erc_adequacy_table_"
     elif data_type == "price":
         filename_prefix = "erc_price_graph_"
+    elif data_type == "load":
+        filename_prefix = "erc_load_graph_"
+    elif data_type == "wind":
+        filename_prefix = "erc_wind_graph_"
     else:
         raise Exception("Invalid type: %s" %data_type)
     data_dir = os.path.join(os.path.dirname(__file__), 'data')
