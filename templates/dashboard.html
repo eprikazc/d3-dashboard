@@ -57,9 +57,6 @@
             stroke: #851dd8
         }
 
-        #system_parameters table th {
-            text-align:left;
-        }
         #system_parameters table td:nth-child(3) {
             text-align:right;
         }
@@ -69,17 +66,14 @@
         #adequacy table td:nth-child(2), #adequacy table td:nth-child(3) {
             text-align:center;
         }
-        table
-        {
+        table {
             border-collapse:collapse;
         }
-        table, th, td
-        {
+        table, th, td {
             border: 1px solid black;
         }
-        th
-        {
-            background-color:#d3d3d3;
+        thead tr:nth-child(2) th {
+            background-color: #d3d3d3;
         }
 
 
@@ -89,14 +83,14 @@
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.1/underscore-min.js"></script>
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/d3/2.10.0/d3.v2.min.js"></script>
     <script type="text/javascript">
-        function tabulate(selector, csv_url, printable_columns) {
+        function tabulate(selector, csv_url, options) {
             $.get(
                 csv_url,
                 function(data){
                     var data = (d3.csv.parseRows(data));
-                    parsed_headers = data.shift();
-                    if (printable_columns == undefined) {
-                        printable_columns = parsed_headers;
+                    var parsed_headers = data.shift();
+                    if (options.printable_headers == undefined) {
+                        options.printable_headers = parsed_headers;
                     }
                     $(selector + " table").html("");
                     var table = d3.select(selector + " table"),
@@ -105,8 +99,12 @@
 
                     // append the header row
                     thead.append("tr")
+                            .append("th")
+                            .attr("colspan", "100%")
+                            .text(options.title);
+                    thead.append("tr")
                             .selectAll("th")
-                            .data(printable_columns)
+                            .data(options.printable_headers)
                             .enter()
                             .append("th")
                             .html(function(column) {
@@ -116,10 +114,9 @@
                                     return "Previous<br/>" + column.substr(9);
                                 } else if (column == "Hour beginning") {
                                     return "Hour<br/>beginning";
+                                } else {
+                                    return column;
                                 }
-
-
-                                return column;
                             });
 
                     // create a row for each object in the data
@@ -150,8 +147,22 @@
             if (options == undefined) {
                 options = {};
             }
+            if (options.margin_top == undefined) {
+                options.margin_top = 20;
+            }
+            if (options.margin_right == undefined) {
+                options.margin_right = 80;
+            }
+            if (options.margin_bottom == undefined) {
+                options.margin_bottom = 50;
+            }
+            if (options.margin_left == undefined) {
+                options.margin_left = 80;
+            }
+
+
             if (options.margin == undefined) {
-                options.margin = [20, 80, 50, 80];
+                options.margin = [options.margin_top, options.margin_right, options.margin_bottom, options.margin_left];
             }
             if (options.width == undefined) {
                 options.width = screen.width*0.45;
@@ -170,7 +181,7 @@
                     w = options.width - m[1] - m[3],
                     h = options.height - m[0] - m[2],
                     parse = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
-            format = d3.time.format("%H:%M");
+            format = d3.time.format("%H");
 
             // Scales and axes. Note the inverted domain for the y-scale: bigger is up!
             var x = d3.time.scale().range([0, w]),
@@ -184,7 +195,7 @@
                         var values = d3.csv.parse(data);
 
                         values.forEach(function(d) {
-                            d.Datetime = parse(d.Datetime.substring(0, d.Datetime.length - 6));
+                            d.Datetime = parse(d.Datetime.replace("-05:00", ""));
                         });
 
                         x.domain([values[0].Datetime, values[values.length - 1].Datetime]);
@@ -285,22 +296,30 @@
     </script>
 </head>
 <body>
-<div id="load" style="float: left;"><svg></svg></div>
-<div id="price" style="float: left;"><svg></svg></div>
-<div id="wind" style="float: left;"><svg></svg></div>
-<div id="adequacy"><table></table></div>
-<div id="system_parameters" style="position:relative; top:-150px;"><table></table></div>
+<div id="left" style="float: left;">
+    <div id="load" ><svg></svg></div>
+    <div id="wind" style="padding-bottom: 2%;" ><svg></svg></div>
+    <div id="system_parameters" style="padding-left: 10%;"><table></table></div>
+</div>
+<div id="right">
+    <div id="price" style="padding-bottom: 2%;" ><svg></svg></div>
+    <div id="adequacy" style="float: right; padding-right: 18%;" ><table></table></div>
+</div>
 
 <script type="text/javascript">
     var updateData = function(){
         tabulate(
             "#system_parameters",
-            "/data_update?data=system_parameters",
-            ["System parameters", "Time stamp", "Value"]
+            "/data_update?data=system_parameters", {
+                printable_headers: ["System parameters", "Time stamp", "Value"],
+                title: "System Ancillary Service Capacity Monitor"
+            }
         );
         tabulate(
             "#adequacy",
-            "/data_update?data=adequacy"
+            "/data_update?data=adequacy", {
+                title: "Short Term Adequacy"
+            }
         );
 
         graphic("div#price", "/data_update?data=price", {
