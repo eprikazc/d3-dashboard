@@ -1,0 +1,15 @@
+Name,tsvaldtm,tsvalue
+Generation Resources,2012-10-13 12:57,1365
+Load Resources (excludes Controllable Load Resources),2012-10-13 12:57,1378
+Controllable Load Resources,2012-10-13 00:05,0
+On-Line Generation Resources With Energy Offer Curves,2012-10-13 11:04,19
+On-Line Generation Resources with Output Schedule,2012-10-13 00:05,0
+Off-Line Generation Resources,2012-10-13 12:47,1085
+Undeployed Load Resources,2012-10-13 00:05,0
+Undeployed Reg-Up,2012-10-13 12:57,314
+Undeployed Reg-Down,2012-10-13 12:17,491
+Capacity with Energy Offer Curve Available to Increase SCED Base Points,2012-10-13 12:57,4004
+Capacity without Energy Offer Curve Available to Increase SCED Base Points,2012-10-13 12:57,36
+Capacity with Energy Offer Curve Available to Decrease SCED Base Points,2012-10-13 12:57,-19450
+Capacity without Energy Offer Curve Available to Decrease SCED Base Points,2012-10-13 12:57,-1510
+ERCOT-Wide Physical Responsive Capability,2012-10-13 12:57,4707
