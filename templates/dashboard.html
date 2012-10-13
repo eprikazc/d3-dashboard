@@ -57,6 +57,32 @@
             stroke: #851dd8
         }
 
+        #system_parameters table th {
+            text-align:left;
+        }
+        #system_parameters table td:nth-child(3) {
+            text-align:right;
+        }
+        #adequacy table td:nth-child(1), #adequacy table td:nth-child(4) {
+            text-align:right;
+        }
+        #adequacy table td:nth-child(2), #adequacy table td:nth-child(3) {
+            text-align:center;
+        }
+        table
+        {
+            border-collapse:collapse;
+        }
+        table, th, td
+        {
+            border: 1px solid black;
+        }
+        th
+        {
+            background-color:#d3d3d3;
+        }
+
+
     </style>
 
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
@@ -83,7 +109,18 @@
                             .data(printable_columns)
                             .enter()
                             .append("th")
-                            .text(function(column) { return column; });
+                            .html(function(column) {
+                                if (column.substr(0, 7) == "Current") {
+                                    return "Current<br/>" + column.substr(8);
+                                } else if (column.substr(0, 8) == "Previous") {
+                                    return "Previous<br/>" + column.substr(9);
+                                } else if (column == "Hour beginning") {
+                                    return "Hour<br/>beginning";
+                                }
+
+
+                                return column;
+                            });
 
                     // create a row for each object in the data
                     var rows = tbody.selectAll("tr")
@@ -99,7 +136,8 @@
                             .enter()
                             .append("td")
                             .text(function(d) {
-                                return d;
+                                var rounded_value = Math.round(d);
+                                return isNaN(rounded_value) ? d : rounded_value;
                             });
 
                     return table;
@@ -113,7 +151,7 @@
                 options = {};
             }
             if (options.margin == undefined) {
-                options.margin = [20, 80, 80, 80];
+                options.margin = [20, 80, 50, 80];
             }
             if (options.width == undefined) {
                 options.width = screen.width*0.45;
@@ -265,9 +303,16 @@
             "/data_update?data=adequacy"
         );
 
-        graphic("div#price", "/data_update?data=price", {title: "Price", y_label: "$/MWh", y_label_offset: -20, legend_rows: 3});
-        graphic("div#load", "/data_update?data=load", {title: "Load", y_label: "MW"});
-        graphic("div#wind", "/data_update?data=wind", {title: "Wind generation", y_label: "MW", height: screen.height*0.25});
+        graphic("div#price", "/data_update?data=price", {
+            title: "Price", y_label: "$/MWh", height: screen.height*0.4,
+            y_label_offset: -20, legend_rows: 3
+        });
+        graphic("div#load", "/data_update?data=load", {
+            title: "Load", y_label: "MW", height: screen.height*0.4
+        });
+        graphic("div#wind", "/data_update?data=wind", {
+            title: "Wind generation", y_label: "MW", height: screen.height*0.25
+        });
     }
     $(function(){
         updateData();
