@@ -165,7 +165,7 @@
                 options.margin = [options.margin_top, options.margin_right, options.margin_bottom, options.margin_left];
             }
             if (options.width == undefined) {
-                options.width = screen.width*0.45;
+                options.width = d3.min([screen.width*0.45, 600]);
             }
             if (options.height == undefined) {
                 options.height = screen.height*0.3;
