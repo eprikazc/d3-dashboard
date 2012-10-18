@@ -323,14 +323,14 @@
         );
 
         graphic("div#price", "/data_update?data=price", {
-            title: "Price", y_label: "$/MWh", height: screen.height*0.33,
+            title: "Price", y_label: "$/MWh", height: d3.min([screen.height*0.33, 253]),
             y_label_offset: -20, legend_rows: 3
         });
         graphic("div#load", "/data_update?data=load", {
-            title: "Load", y_label: "MW", height: screen.height*0.33
+            title: "Load", y_label: "MW", height: d3.min([screen.height*0.33, 253])
         });
         graphic("div#wind", "/data_update?data=wind", {
-            title: "Wind generation", y_label: "MW", height: screen.height*0.25
+            title: "Wind generation", y_label: "MW", height: d3.min([screen.height*0.25, 192])
         });
     }
     $(function(){
